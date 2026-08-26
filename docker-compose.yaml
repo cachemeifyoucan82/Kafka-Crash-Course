@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.8.3
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    
+    environment:
+      KAFKA_KRAFT_MODE: 'true' #Kakfa built in system to manage its own metadata and cluster coordination internally
+
+# Kafka is designed to run as a clustr made up of muliple nodes and the nodes are called Kafka broker (store ad manage data, handles data from producers and consumers) 
+# in production environment kafka has muliple brokers from scalability and will be deployed as a cluster and one cluster will have a role as a controller 
+# Controller role manages the cluster's state so that the manager tracks which broker is the leader (only 1 broker is the controller)
+# In this one our one broker will act as the controller broker
+      CLUSTER_ID: '1L6g7nGhU-eAKfL--X25wo' 
+      KAFKA_NODE_ID: 1
+
+      KAFKA_PROCESS_ROLES: broker, controller # this eill tell Kafka that this node will act as a broker (store and serve data) controller (manage the cluster coordination)
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093 #defines which brokers our controllers can vode on importanct decisions
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 #there is only 1 copy of the kafka metadata that keeps track of which messages each consumer has read, set number higher in producton environment
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092, CONTROLLER://0.0.0.0:9093 #tells Kafka to open 2 doors 1 for regular traffic, where producers and consumers connect to kafka
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092 #tells kafka hey this is the address you can talk to me
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER #use this door for manage direction
+
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs #tells kafka where to store all logs
+    volumes:
+      - kafka_kraft:/var/lib/kafka/data
+
+volumes:
+  kafka_kraft:

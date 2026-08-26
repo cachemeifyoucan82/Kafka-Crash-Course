@@ -1,0 +1,4 @@
+/._.venv
+/._docker-compose.yaml
+/._producer.py
+/._tracker.py
